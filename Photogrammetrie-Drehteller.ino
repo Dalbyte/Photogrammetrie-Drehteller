@@ -44,6 +44,7 @@ int delayphoto = 1000; // Für die Kamera eine Pause.
 
 ////////////////////////////////////////////////////////////////////////////////
 // Bildeinstellung
+
 unsigned long time;
 unsigned long lasttime;
 int resettime = 5000;
@@ -79,6 +80,7 @@ void setup(){
 
 ////////////////////////////////////////////////////////////////////////////////
 // LOOP
+
 void loop(){
   
   Button();
@@ -89,6 +91,7 @@ void loop(){
 
 ////////////////////////////////////////////////////////////////////////////////
 // MotorLoop
+
 void ledringstep(int stepPosition){
 
   for(int i=0;i<NUMPIXELS;i++){
@@ -142,6 +145,7 @@ void pixelred(){
 
 ////////////////////////////////////////////////////////////////////////////////
 // Steppmotor setzt Rotationsposition
+
 void stepMotor(){
 
   digitalWrite(StepDir,HIGH); // im Uhrzeigersinn
@@ -237,6 +241,7 @@ void goStepToPoint(int x){
 
 ////////////////////////////////////////////////////////////////////////////////
 // Button
+
 void Button(){
   PINphototriggerStatus=digitalRead(PINphototrigger);
 
