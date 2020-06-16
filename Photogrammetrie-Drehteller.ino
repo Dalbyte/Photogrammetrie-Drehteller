@@ -1,6 +1,6 @@
 #include <Adafruit_NeoPixel.h>
 
-#define PINledring    14 // Wemos-D1-mini D5
+#define PINledring    0 // Wemos-D1-mini D5
 
 // How many NeoPixels are attached to the Arduino?
 #define NUMPIXELS      12
@@ -8,18 +8,19 @@ int NEOPIXEL = 12;
 
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PINledring, NEO_GRB + NEO_KHZ800);
 
+// PinOut Prüfen je nach Umsetzung unterschiedlich
 // PinOUT
-int PINphototrigger = 12; // Wemos-D1-mini D6
+int PINphototrigger = 13; // Wemos-D1-mini D6
 int PINphototriggerStatus=0; // Wemos-D1-mini D6 Status
 
-int ButtonZurueck = 15; // Wemos-D1-mini D8
+int ButtonZurueck = 12; // Wemos-D1-mini D8
 int ButtonZurueckStatus = 0; // Wemos-D1-mini D8 Status
-int ButtonVorwaerts = 5; // Wemos-D1-mini D1
+int ButtonVorwaerts = 15; // Wemos-D1-mini D1
 int ButtonVorwaertsStatus = 0; // Wemos-D1-mini D1 Status
 
-int PINphototriggerRelay= 13; // Wemos-D1-mini D7
-int StepEnable = 2; // Enable Wemos-D1-mini D4
-int StepStep = 0; // Step Wemos-D1-mini D3
+int PINphototriggerRelay= 14; // Wemos-D1-mini D7
+int StepEnable = 16; // Enable Wemos-D1-mini D4
+int StepStep = 5; // Step Wemos-D1-mini D3
 int StepDir = 4 ; // Richtung Wemos-D1-mini D2
 
 
