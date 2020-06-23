@@ -1,4 +1,14 @@
 #include <Adafruit_NeoPixel.h>
+// Für Infarot Sender
+#include <Arduino.h>
+#include <IRremoteESP8266.h>
+#include <IRsend.h>
+
+
+const uint16_t kIrLed = 4;  // ESP8266 GPIO pin to use. Recommended: 4 (D2).
+IRsend irsend(kIrLed);  // Set the GPIO to be used to sending the message.
+
+// Infarot Ende Setup
 
 #define PINledring    0 // Wemos-D1-mini D5
 
@@ -21,7 +31,7 @@ int ButtonVorwaertsStatus = 0; // Wemos-D1-mini D1 Status
 int PINphototriggerRelay= 14; // Wemos-D1-mini D7
 int StepEnable = 16; // Enable Wemos-D1-mini D4
 int StepStep = 5; // Step Wemos-D1-mini D3
-int StepDir = 4 ; // Richtung Wemos-D1-mini D2
+int StepDir = 2 ; // Richtung Wemos-D1-mini D2
 
 
 
@@ -41,18 +51,24 @@ int motorStepPointB = 0; // Hilft bei Halbenschritten.
 
 int photo = 20; // Wie viel Fotos für 360°
 int photoCount = 0; // Wie viel Fotos geknippst wurden.
-int delayphoto = 1000; // Für die Kamera eine Pause.
+int delayphoto = 3000; // Für die Kamera eine Pause.
 
 ////////////////////////////////////////////////////////////////////////////////
 // Bildeinstellung
 
-unsigned long time;
+unsigned long timer;
 unsigned long lasttime;
 int resettime = 5000;
 bool settingsativ = false;
 
 void setup(){
-    Serial.begin(115200);
+  irsend.begin();
+  #if ESP8266
+    Serial.begin(115200, SERIAL_8N1, SERIAL_TX_ONLY);
+  #else  // ESP8266
+    Serial.begin(115200, SERIAL_8N1);
+  #endif  // ESP8266
+    
 
     // Pinlayout Def.
     pinMode(PINphototrigger, INPUT);
@@ -306,15 +322,24 @@ void madePhoto(){
     digitalWrite(PINphototriggerRelay, HIGH);
     delay(160); // Auslöser brauch Delay
     digitalWrite(PINphototriggerRelay, LOW);
+    madePhotoSony();
+}
+
+void madePhotoSony(){
+  // Es muss 3 mal gesendet werden das Signal
+  for (int i=0; i<3; i++){
+  irsend.sendSony(740239, 20);
+  delay(40);
+  }  
 }
 
 void zeit(){
 
   if(settingsativ){
-    time = millis(); // Check Time
-    int timedif = time-lasttime;
+    timer = millis(); // Check Time
+    int timedif = timer-lasttime;
     Serial.println(lasttime);
-    Serial.println(time);
+    Serial.println(timer);
     Serial.println(timedif);
     if (timedif > resettime) {
         pixelred();
