@@ -4,9 +4,29 @@
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
 
+// WEB
+
+#include <ESP8266WiFi.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <FS.h>
+
+
+/*SSID & Password*/
+const char* ssid = "scanteller";  // Enter SSID here
+const char* password = "";  //Enter Password here
 
 const uint16_t kIrLed = 4;  // ESP8266 GPIO pin to use. Recommended: 4 (D2).
 IRsend irsend(kIrLed);  // Set the GPIO to be used to sending the message.
+
+/* IP Address*/
+IPAddress local_ip(192,168,1,1);
+IPAddress gateway(192,168,1,1);
+IPAddress subnet(255,255,255,0);
+
+AsyncWebServer server(80);
+
+bool WebTriggerBool = false;
 
 // Infarot Ende Setup
 
@@ -91,6 +111,8 @@ void setup(){
     setStepVariable();
     pixelred();
 
+    WebSetup();
+
 }
 
 
@@ -102,6 +124,7 @@ void loop(){
   
   Button();
   Photoeinstellung();
+  WebTrigger();
   
   
 }
@@ -383,3 +406,46 @@ void ledPhoto(){
   pixels.show();
 
 }
+
+
+//// WEB
+
+void WebSetup(){
+  WiFi.softAP(ssid, password);
+  WiFi.softAPConfig(local_ip, gateway, subnet);
+  delay(100);
+
+  if(!SPIFFS.begin()) {
+    Serial.println("SPIFFS Mount failed");
+    while(true) yield(); //Stop here
+  }
+
+
+  server.on("/index", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/index.html", String());
+  });
+
+    server.on("/pixelart.gif", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/pixelart.gif", String());
+  });
+
+      server.on("/PressStart2P-Regular.ttf", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/PressStart2P-Regular.ttf", String());
+  });
+
+    server.on("/start", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->redirect("/index");
+    WebTriggerBool = true;
+  });
+  
+
+  server.begin();
+  Serial.println("HTTP server started");
+}
+
+void WebTrigger(){
+if(WebTriggerBool){
+    stepSchleife();
+    WebTriggerBool = false;
+  }
+};
