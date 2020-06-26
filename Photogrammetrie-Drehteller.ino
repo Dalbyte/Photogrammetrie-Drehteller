@@ -28,6 +28,8 @@ AsyncWebServer server(80);
 
 bool WebTriggerBool = false;
 
+String WebParaName;
+
 // Infarot Ende Setup
 
 #define PINledring    0 // Wemos-D1-mini D5
@@ -61,7 +63,7 @@ int delayval = 20; // delay for half a second
 ////////////////////////////////////////////////////////////////////////////////
 // Settings
 
-int motorStep = 3200; // 16*200 (1,8° Steps kann der Motor)
+int motorStep = 9600; // 16(SubStep)*200(RealSteps)=3200 (1,8° Steps kann der Motor), 9600 Zahnrad
 int motorStepCount = 0; // Aktuelle Schritt Position
 int speeddelay = 0; // Pause zwischen den Schritten
 int StepToPixel = 0; // Schritt pro Led
@@ -80,6 +82,8 @@ unsigned long timer;
 unsigned long lasttime;
 int resettime = 5000;
 bool settingsativ = false;
+
+///////////////////////////////////////////////////////////////////////////////
 
 void setup(){
   irsend.begin();
@@ -271,10 +275,9 @@ void goStepToPoint(int x){
     delay(speeddelay);
     stepMotor(); 
   }
-  delay(160); // Ausschwingen
+  delay(delayphoto); // Ausschwingen / Kamera Cache => SD-Karte
   madePhoto();
-  delay(delayphoto); // Kamera Cache => SD-Karte
-
+  delay(1000); // Auslösen (Langzeitbelichtung ist nicht vorgesehen)
 
 }
 
@@ -307,12 +310,8 @@ void ButtonVor(){
 
     if (ButtonVorwaertsStatus == HIGH){
       Serial.println("Vor");
-      photo += 1;
-      Serial.println(photo);
-      settingsativ = true;
-      lasttime = millis();
-      ledPhoto();
-      delay(180);
+      photo += 1; // Plus ein Bild
+      ButtonVorZu(); // Status + Ledring + Block
   }
 
 }
@@ -322,14 +321,18 @@ void ButtonZu(){
 
     if (ButtonZurueckStatus == HIGH){
       Serial.println("Zu");
-      photo -= 1;
-      Serial.println(photo);
-      settingsativ = true;
-      lasttime = millis();
-      ledPhoto();
-      delay(180);
+      photo -= 1; // Minus ein Bild
+      ButtonVorZu(); // Status + Ledring + Block
   }
 
+}
+
+void ButtonVorZu(){
+      Serial.println(photo);
+      settingsativ = true; // setzt Status damit man in Settingsmodus bleibt.
+      lasttime = millis(); // inaktivität Marker um Interface in Normal Modus zu setzen.
+      ledPhoto();
+      delay(180); // Doppelte Eingabe wird verhintert
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -342,10 +345,15 @@ void Photoeinstellung(){
 }
 
 void madePhoto(){
+    madePhotoCanon();
+    madePhotoSony();
+}
+
+void madePhotoCanon(){
+  // Optokoppler wird hier geschaltet. Methode funktioniert auch bei Nikon Pinlayout beachten.
     digitalWrite(PINphototriggerRelay, HIGH);
     delay(160); // Auslöser brauch Delay
     digitalWrite(PINphototriggerRelay, LOW);
-    madePhotoSony();
 }
 
 void madePhotoSony(){
@@ -373,6 +381,7 @@ void zeit(){
 
 }
 
+// LedSettings
 void ledPhoto(){
 
   for(int i=0;i<NUMPIXELS;i++){
@@ -407,7 +416,7 @@ void ledPhoto(){
 
 }
 
-
+////////////////////////////////////////////////////////////////////////////////
 //// WEB
 
 void WebSetup(){
@@ -420,22 +429,61 @@ void WebSetup(){
     while(true) yield(); //Stop here
   }
 
-
+  // Sendet die Start Webseite aus den SPIFFS, musst AsyncMethode nehmen weil wegen SoftAcessesPoint irgend was nicht funktioniert hat mit SPIFFS.
   server.on("/index", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/index.html", String());
   });
 
+  // Title Bild
     server.on("/pixelart.gif", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/pixelart.gif", String());
   });
 
+  // Font
       server.on("/PressStart2P-Regular.ttf", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/PressStart2P-Regular.ttf", String());
   });
 
+    // Webrequest setzt nur eine Variable die durchen den Normalen Loop dann ausgelöst wird.
     server.on("/start", HTTP_GET, [](AsyncWebServerRequest *request){
     request->redirect("/index");
     WebTriggerBool = true;
+  });
+
+
+    // Webrequest setzt nur eine Variable die durchen den Normalen Loop dann ausgelöst wird.
+  server.on("/save", HTTP_GET, [](AsyncWebServerRequest *request){
+    
+    int paramsNr = request->params();
+    Serial.println(paramsNr);
+
+    for(int i=0;i<paramsNr;i++){
+
+        AsyncWebParameter* p = request->getParam(i);
+
+        // Schickt alle Parameter zurück
+        Serial.print("Name: ");
+        Serial.println(p->name());
+        Serial.print("Value: ");
+        Serial.println(p->value());
+        Serial.println("---Nächster Parameter/Ende---");
+
+        WebParaName = p->name();
+
+        if(WebParaName == "frame"){
+          // Serial.println("frame");
+          photo = p->value().toInt();
+          ButtonVorZu();
+        }
+
+        if(WebParaName == "delay"){
+          // Serial.println("delay");
+          delayphoto = p->value().toInt()*1000;
+        }
+    
+
+    }
+    request->redirect("/index");
   });
   
 
@@ -443,6 +491,7 @@ void WebSetup(){
   Serial.println("HTTP server started");
 }
 
+// Hat jemand über das Webinterface Start gedrückt?
 void WebTrigger(){
 if(WebTriggerBool){
     stepSchleife();

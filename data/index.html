@@ -133,30 +133,50 @@
 
         <br>
 
-        <button class="button set">
+        <button onclick="location.href='http://192.168.1.1/save?frame=12&delay=3'" class="button set" id="save">
             <h5>Save</h5>
         </button>
-        <button class="button start">
+        <button onclick="location.href='http://192.168.1.1/start'" class="button start">
             <h5>Start</h5>
         </button>
     </div>
 
     <script>
+        // Query Part
+        const queryStr = 'frame=5&delay=3';
+        const queryToAdd = new URLSearchParams(queryStr);
+        var savebutton = document.getElementById('save');
+
+        // Slider Photo
         var slider = document.getElementById("myRange");
         var output = document.getElementById("demo");
         output.innerHTML = slider.value;
 
         slider.oninput = function () {
             output.innerHTML = this.value;
+            queryToAdd.set('frame',slider.value);
+            console.log(queryToAdd.toString());
+
+            var queryUrl = "http://192.168.1.1/save?" + queryToAdd.toString();
+            console.log(queryUrl);
+            savebutton.setAttribute("onclick","location.href = '"+ queryUrl.toString()+"'");
         }
 
+        // Slider Time
         var TimeSlider = document.getElementById("TimeRang");
         var TimeOutput = document.getElementById("Time");
         TimeOutput.innerHTML = TimeSlider.value;
 
         TimeSlider.oninput = function () {
             TimeOutput.innerHTML = TimeSlider.value;
+            queryToAdd.set('delay',TimeSlider.value);
+            console.log(queryToAdd.toString());
+            var queryUrl = "http://192.168.1.1/save?" + queryToAdd.toString();
+            console.log(queryUrl);
+            savebutton.setAttribute("onclick","location.href = '"+ queryUrl.toString()+"'");
         }
+
+        
     </script>
 
 </body>
