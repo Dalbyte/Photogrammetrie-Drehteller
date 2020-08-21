@@ -104,10 +104,10 @@
 </head>
 
 <body>
-    <canvas id="game" width="200" height="80"></canvas>
+    <canvas id="header" width="200" height="80"></canvas>
     <script>
         // get canvas context
-        var ctx = document.getElementById('game').getContext('2d');
+        var ctx = document.getElementById('header').getContext('2d');
         // load image
         var image = new Image();
         image.onload = function () {
@@ -121,7 +121,7 @@
             <h5>Photogrammetrie<br>Drehteller</h5>
         </div>
         <div class="box2">
-            <h5>Version<br>1.0</h5>
+            <h5>Version<br>1.1</h5>
         </div>
     </div>
     <div class="slidecontainer">
@@ -139,6 +139,7 @@
         <button onclick="location.href='http://192.168.1.1/start'" class="button start">
             <h5>Start</h5>
         </button>
+        
     </div>
 
     <script>
