@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
 
-<!--CONTAINER DESIGN-->
+/*CONTAINERDESIGN*/
         body {
             background-color: #FD4659;
         }
 
         @font-face {
             font-family: PressStart2P-Regular;
-            src: url(/PressStart2P-Regular.ttf);
+            src: url(PressStart2P-Regular.ttf);
         }
 
         div {
@@ -42,8 +42,7 @@
              box-sizing: border-box; */
         }
 
-<!--SCHRIFT-->
-
+/*SCHRIFT*/
         h1 {
             font-family: PressStart2P-Regular;
             line-height: 1.4;
@@ -58,7 +57,7 @@
             color: #fff;
         }
 
-<!--SLIDER DESIGN-->
+/*SLIDERDESIGN*/
         .slider {
             -webkit-appearance: none;
             width: 90%;
@@ -90,7 +89,7 @@
             cursor: pointer;
         }
 
-<!--BUTTON DESIGN-->
+/*BUTTONDESIGN*/
         .button {
             border-radius: 0px;
             background: #FD4659;
@@ -98,7 +97,7 @@
                 -5px -5px 0px #ff6d8b;
         }
 
-<!--CANVAS-->
+/*CANVAS*/
         canvas {
             width: 100%;
             height: 40%;
@@ -123,7 +122,7 @@
             // draw the image into the canvas
             ctx.drawImage(image, 0, 0);
         }
-        image.src = '/pixelart.gif';
+        image.src = 'pixelart.gif';
     </script>
 
     <!--SLIDER BESCHRIFTUNG-->
@@ -138,10 +137,15 @@
 
     <!--SLIDER-->
     <div class="slidecontainer">
-        <input type="range" min="1" max="360" value="12" class="slider" id="myRange">
-        <p>frame per 360° : <span id="demo"></span></p>
-        <br>
-        <input type="range" min="1" max="30" value="3" class="slider" id="TimeRang">
+        
+        
+        
+    <!--FRAME ANZAHL AUF EINE 360-->   
+        <input id="FrameTo360" type="range" class="slider" min="1" max="360" step="1" value="12" oninput="sendRGB();">
+        <p>frame per 360° : <span id="demo"></span></p><br>
+    
+    <!--DELAY-->
+        <input id="TimeRang" type="range" class="slider" min="1" max="30" step="1" value="3" oninput="sendRGB();">
         <p>second per frame: <span id="Time"></span>s</p>
         <br>
 
@@ -155,15 +159,16 @@
         
     </div>
 
-    <!--QueryLink-->
-    <script>
+    <!--QueryLink
+
+    /* 
         // Query Part
         const queryStr = 'frame=5&delay=3';
         const queryToAdd = new URLSearchParams(queryStr);
         var savebutton = document.getElementById('save');
 
         // Slider Photo
-        var slider = document.getElementById("myRange");
+        var slider = document.getElementById("FrameTo360");
         var output = document.getElementById("demo");
         output.innerHTML = slider.value;
 
@@ -190,13 +195,59 @@
             console.log(queryUrl);
             savebutton.setAttribute("onclick","location.href = '"+ queryUrl.toString()+"'");
         }
+    -->
 
+    <!--WEBSOCKET SLIDER SKRIPT-->
+
+    <script>
+        
+        var connection = new WebSocket("ws://" + location.hostname + ":81/", ["arduino"]); 
+
+        connection.onopen = function () {
+            connection.send("Connect " + new Date());
+        };
+
+        connection.onerror = function (error) {
+            console.log("WebSocket Error ", error);
+        };
+
+        connection.onmessage = function (e) {
+            console.log("Server: ", e.data);
+        };
+
+        function sendRGB() {
+            var r = parseInt(document.getElementById("r").value).toString(16);
+            var g = parseInt(document.getElementById("g").value).toString(16);
+            var b = parseInt(document.getElementById("b").value).toString(16);
+            
+            console.log("r:"+r);
+            console.log("g:"+g);
+            console.log("b:"+b);
+            
+            if (r.length < 2) {
+                r = "0" + r;
+            }
+            if (g.length < 2) {
+                g = "0" + g;
+            }
+            if (b.length < 2) {
+                b = "0" + b;
+            }
+            var rgb = "#" + r + g + b;
+            console.log("RGB: " + rgb);
+            connection.send(rgb);
+        }
         
     </script>
 
     <!--WEBSOCKET SLIDER-->
 
-
+    LED Control:
+    <br/>
+    <br/>
+    R: <input id="r" type="range" min="0" max="255" step="1" oninput="sendRGB();" /><br />
+    G: <input id="g" type="range" min="0" max="255" step="1" oninput="sendRGB();" /><br />
+    B: <input id="b" type="range" min="0" max="255" step="1" oninput="sendRGB();" /><br />   
 
 </body>
 
