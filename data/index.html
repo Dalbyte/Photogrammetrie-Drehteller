@@ -141,22 +141,30 @@
         
         
     <!--FRAME ANZAHL AUF EINE 360-->   
-        <input id="FrameTo360" type="range" class="slider" min="1" max="360" step="1" value="12" oninput="sendRGB();">
-        <p>frame per 360° : <span id="demo"></span></p><br>
+        <input id="FrameTo360" type="range" class="slider" min="1" max="360" step="1" value="12" oninput="sendtoScanner();">
+        <p>frame per 360° : <span id="FrameOutput"></span></p><br>
     
     <!--DELAY-->
-        <input id="TimeRang" type="range" class="slider" min="1" max="30" step="1" value="3" oninput="sendRGB();">
-        <p>second per frame: <span id="Time"></span>s</p>
+        <input id="TimeRang" type="range" class="slider" min="1" max="30" step="1" value="3" oninput="sendtoScanner();">
+        <p>second per frame: <span id="TimeOutput"></span>s</p>
         <br>
 
     <!--BUTTON-->
-        <button onclick="location.href='http://192.168.1.1/save?frame=12&delay=3'" class="button set" id="save">
-            <h5>Save</h5>
+        <button onclick="sendButtonStepPlus()" class="button set" id="save">
+            <h5>&lsaquo;- Step + Photo</h5>
         </button>
-        <button onclick="location.href='http://192.168.1.1/start'" class="button start">
+        <button onclick="sendButtonStepPlus()" class="button set" id="save">
+            <h5>&lsaquo;- Step</h5>
+        </button>
+        <button onclick="sendButtonStart()" class="button start">
             <h5>Start</h5>
         </button>
-        
+        <button onclick="sendButtonStepPlus()" class="button set" id="save">
+            <h5>Step -&rsaquo;</h5>
+        </button>
+        <button onclick="sendButtonStepPlusPhoto()" class="button set" id="save">
+            <h5>Step + Photo -&rsaquo;</h5>
+        </button>
     </div>
 
     <!--QueryLink
@@ -233,27 +241,65 @@
             WebsocketFehler = false;
         };
 
-        function sendRGB() {
-            var r = parseInt(document.getElementById("r").value).toString(16);
-            var g = parseInt(document.getElementById("g").value).toString(16);
-            var b = parseInt(document.getElementById("b").value).toString(16);
+        // Get Slider Daten and Send
+        function sendtoScanner() {
             
-            console.log("r:"+r);
-            console.log("g:"+g);
-            console.log("b:"+b);
+            // Get Data
+            var framecount = document.getElementById("FrameTo360").value;
+            var timedelay = document.getElementById("TimeRang").value;
             
-            if (r.length < 2) {
-                r = "0" + r;
+            console.log("FrameTo360: "+framecount);
+            console.log("TimeRang: "+timedelay);
+            
+            // HTML DATA
+            let FrameOutput = document.getElementById("FrameOutput");
+            let TimeOutput = document.getElementById("TimeOutput");
+            FrameOutput.innerHTML = framecount;
+            TimeOutput.innerHTML = timedelay;
+            
+            // Struktur Data
+            let dataObj = {
+                "FrameTo360" : framecount,
+                "TimeRang": timedelay
             }
-            if (g.length < 2) {
-                g = "0" + g;
-            }
-            if (b.length < 2) {
-                b = "0" + b;
-            }
-            var rgb = "#" + r + g + b;
-            console.log("RGB: " + rgb);
-            connection.send(rgb);
+            
+            var dataJSON = JSON.stringify(dataObj);
+            
+            // Send Data
+            var rgb = "#";
+            console.log(dataJSON);
+            connection.send(dataJSON);
+        }
+        
+        // Alle Button
+        function sendButtonStart() {
+            var button = "#"+"Start";
+            console.log(button);
+            connection.send(button);
+        }
+        
+        function sendButtonStepPlus() {
+            var button = "#"+"StepPlus";
+            console.log(button);
+            connection.send(button);
+        }
+        
+        function sendButtonStepMinus() {
+            var button = "#"+"StepMinus";
+            console.log(button);
+            connection.send(button);
+        }
+        
+        function sendButtonStepPlusPhoto() {
+            var button = "#"+"StepPlusPhoto";
+            console.log(button);
+            connection.send(button);
+        }
+        
+        function sendButtonStepMinusPhoto() {
+            var button = "#"+"StepMinusPhoto";
+            console.log(button);
+            connection.send(button);
         }
         
         
@@ -304,13 +350,6 @@
         }
         
     </script>
-
-    <!--WEBSOCKET SLIDER-->
-    R: <input id="r" type="range" min="0" max="255" step="1" oninput="sendRGB();" /><br />
-    G: <input id="g" type="range" min="0" max="255" step="1" oninput="sendRGB();" /><br />
-    B: <input id="b" type="range" min="0" max="255" step="1" oninput="sendRGB();" /><br />   
-    
-
 </body>
 
 </html>
